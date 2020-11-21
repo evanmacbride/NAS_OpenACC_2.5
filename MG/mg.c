@@ -132,6 +132,10 @@ int main()
   char *t_names[T_last];
   double tmax;
 
+  //printf("EJM 135\n");
+  //printf("ENV_THREADS : %s\n", getenv("ENV_THREADS"));
+  //printf("ACC_NUM_CORES : %s\n", getenv("ACC_NUM_CORES"));
+  //exit(0);
   for (i = T_init; i < T_last; i++) {
     timer_clear(i);
   }

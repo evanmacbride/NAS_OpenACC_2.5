@@ -1,8 +1,10 @@
 SHELL=/bin/sh
 BENCHMARK=ep
 BENCHMARKU=EP
-DEFINES=-DCRPL_COMP=0
+#DEFINES=-DCRPL_COMP=""
+DEFINES=""
 PXM=acc
+#PXM=""
 
 include ../config/make.def
 

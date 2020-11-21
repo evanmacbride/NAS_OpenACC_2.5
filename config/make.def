@@ -41,7 +41,7 @@ endif
 ifeq ($(CC), pgcc)
 
     ifndef TA
-        TA=nvidia,cc35 
+        TA=tesla,cc70 
     endif
     
     CLINK = $(CC)
@@ -55,6 +55,8 @@ ifeq ($(CC), pgcc)
         ifeq ($(PXM), acc)
             CFLAGS := $(CFLAGS) -acc -ta=$(TA) $(EXTRA_CFLAGS) -Minfo=accel -mcmodel=medium
             CLINKFLAGS := $(CLINKFLAGS) -acc -ta=$(TA) $(EXTRA_CLINKFLAGS) -Minfo=accel -mcmodel=medium
+            #CFLAGS := $(CFLAGS) $(EXTRA_CFLAGS) -mcmodel=medium
+            #CLINKFLAGS := $(CLINKFLAGS) $(EXTRA_CLINKFLAGS) -mcmodel=medium
         endif
     endif
 endif
@@ -103,7 +105,7 @@ endif
 ifeq ($(CC), pgc++)
 
     ifndef TA
-        TA=nvidia,cc35 
+        TA=tesla,cc70
     endif
     
     CLINK = $(CC)
