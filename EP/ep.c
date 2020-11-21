@@ -262,11 +262,7 @@ int main()
     vranlc(0, &dum[0], dum[1], &dum[2]);
     dum[0] = randlc_ep(&dum[1], dum[2]);
 
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs((NQ+127)/128) vector_length(128) present(q[0:NQ])
-#elif CRPL_COMP == 0
 #pragma acc kernels present(q[0:NQ])
-#endif
     {
 #pragma acc loop gang vector independent
       for (i = 0; i < NQ; i++) {
@@ -289,7 +285,7 @@ int main()
     //--------------------------------------------------------------------
 
     t1 = A;
-
+    // MK = 16
     for (i = 0; i < MK + 1; i++) {
       t2 = randlc_ep(&t1, t1);
     }
@@ -309,23 +305,18 @@ int main()
         blksize = np - (blk*blksize);
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs(blksize) vector_length(128) present(qq[0:blksize*NQ])
-#elif CRPL_COMP == 0
 #pragma acc kernels present(qq[0:blksize*NQ])
-#endif
       {
-#pragma acc loop gang independent
+#pragma acc loop collapse(2) independent
         for(k=0; k<blksize; k++)
         {
-#pragma acc loop vector independent
           for(i=0; i<NQ; i++)
             qq[k*NQ + i] = 0.0;
         }
       }
 
       /*
-#pragma acc parallel num_gangs(blksize) vector_length(128) present(xx[0:blksize*2*NK])
+#pragma acc parallel present(xx[0:blksize*2*NK])
 {
  #pragma acc loop gang
  for(k=0; k<blksize; k++)
@@ -342,12 +333,7 @@ int main()
       //  have more numbers to generate than others
       //--------------------------------------------------------------------
 
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs((blksize+255)/256) num_workers(1) vector_length(256) \
-        present(xx[0:blksize*2*NK],qq[0:blksize*NQ])
-#elif CRPL_COMP == 0
 #pragma acc kernels present(xx[0:blksize*2*NK],qq[0:blksize*NQ])
-#endif
       {
 #pragma acc loop gang worker vector reduction(+:sx,sy) independent
         for (k = 1; k <= blksize; k++) {
@@ -402,7 +388,7 @@ int main()
           in_t1 = r23 * A;
           in_a1 = (int)in_t1;
           in_a2 = A - t23 * in_a1;
-
+#pragma acc loop independent
           for(i=0; i<2*NK; i++)
           {
             in_t1 = r23 * t1;
@@ -426,7 +412,7 @@ int main()
 
           tmp_sx = 0.0;
           tmp_sy = 0.0;
-
+#pragma acc loop independent
           for (i = 0; i < NK; i++) {
             x1 = 2.0 * xx[2*i*blksize + (k-1)] - 1.0;
             x2 = 2.0 * xx[(2*i+1)*blksize + (k-1)] - 1.0;
@@ -449,12 +435,7 @@ int main()
       }/*end acc parallel*/
 
       //  printf("sx=%f,sy=%f\n", sx, sy);
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs(NQ) num_workers(4) vector_length(32) \
-        present(q[0:NQ],qq[0:blksize*NQ])
-#elif CRPL_COMP == 0
 #pragma acc kernels present(q[0:NQ],qq[0:blksize*NQ])
-#endif
       {
 #pragma acc loop gang reduction(+:gc) independent
         for(i=0; i<NQ; i++)

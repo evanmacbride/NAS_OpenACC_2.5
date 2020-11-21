@@ -169,6 +169,10 @@ int main(int argc, char *argv[])
   char *t_names[T_last];
   acc_init(acc_device_default);
 
+  printf("Adding acc_set_num_cores(int) at 173\n");
+  acc_set_num_cores(4);
+  printf("ACC_NUM_CORES : %s\n", getenv("ACC_NUM_CORES"));
+
   for (i = 0; i < T_last; i++) {
     timer_clear(i);
   }
