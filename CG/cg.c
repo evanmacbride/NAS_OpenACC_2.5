@@ -169,9 +169,9 @@ int main(int argc, char *argv[])
   char *t_names[T_last];
   acc_init(acc_device_default);
 
-  printf("Adding acc_set_num_cores(int) at 173\n");
-  acc_set_num_cores(4);
-  printf("ACC_NUM_CORES : %s\n", getenv("ACC_NUM_CORES"));
+  //printf("EJM adding acc_set_num_cores(int).\n");
+  //acc_set_num_cores(4);
+  //printf("ACC_NUM_CORES : %s\n", getenv("ACC_NUM_CORES"));
 
   for (i = 0; i < T_last; i++) {
     timer_clear(i);
@@ -269,21 +269,13 @@ int main(int argc, char *argv[])
     // set starting vector to (1, 1, .... 1)
     //---------------------------------------------------------------------
     int na_gangs = NA+1;
-#ifndef CRPL_COMP
-#pragma acc kernels loop gang((na_gangs+127)/128) vector(128)
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang vector
-#endif
     for (i = 0; i < NA+1; i++) {
       x[i] = 1.0;
     }
 
     end = lastcol - firstcol + 1;
-#ifndef CRPL_COMP
-#pragma acc kernels loop gang((end+127)/128) vector(128)
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang vector
-#endif
     for (j = 0; j < end; j++) {
       q[j] = 0.0;
       z[j] = 0.0;
@@ -313,12 +305,7 @@ int main(int argc, char *argv[])
       norm_temp1 = 0.0;
       norm_temp2 = 0.0;
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop num_gangs((end+127)/128) num_workers(4) \
-        vector_length(32) reduction(+:norm_temp2)
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang worker vector reduction(+:norm_temp2)
-#endif
       for (j = 0; j < end; j++) {
         //norm_temp1 = norm_temp1 + x[j] * z[j];
         norm_temp2 = norm_temp2 + z[j] * z[j];
@@ -329,11 +316,7 @@ int main(int argc, char *argv[])
       //---------------------------------------------------------------------
       // Normalize z to obtain x
       //---------------------------------------------------------------------
-#ifndef CRPL_COMP
-#pragma acc kernels loop gang((end+127)/128) vector(128)
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang vector
-#endif
       for (j = 0; j < end; j++) {
         x[j] = norm_temp2 * z[j];
       }
@@ -345,11 +328,7 @@ int main(int argc, char *argv[])
     //---------------------------------------------------------------------
     na_gangs = NA+1;
 
-#ifndef CRPL_COMP
-#pragma acc kernels loop gang((na_gangs+127)/128) vector(128)
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang vector
-#endif
     for (i = 0; i < NA+1; i++) {
       x[i] = 1.0;
     }
@@ -382,12 +361,7 @@ int main(int argc, char *argv[])
       norm_temp1 = 0.0;
       norm_temp2 = 0.0;
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang worker vector num_gangs((end+127)/128) num_workers(4) \
-        vector_length(32) reduction(+:norm_temp1,norm_temp2)
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang worker vector reduction(+:norm_temp1,norm_temp2)
-#endif
       for (j = 0; j < end; j++) {
         norm_temp1 = norm_temp1 + x[j]*z[j];
         norm_temp2 = norm_temp2 + z[j]*z[j];
@@ -403,11 +377,7 @@ int main(int argc, char *argv[])
       //---------------------------------------------------------------------
       // Normalize z to obtain x
       //---------------------------------------------------------------------
-#ifndef CRPL_COMP
-#pragma acc kernels loop gang((end+127)/128) vector(128)
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang vector
-#endif
       for (j = 0; j < end; j++) {
         x[j] = norm_temp2 * z[j];
       }
@@ -515,11 +485,7 @@ static void conj_grad(int colidx[],
     //---------------------------------------------------------------------
     // Initialize the CG algorithm:
     //---------------------------------------------------------------------
-#ifndef CRPL_COMP
-#pragma acc kernels loop gang((naa+127)/128) vector(128) independent
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang vector independent
-#endif
     for (j = 0; j < naa; j++) {
       q[j] = 0.0;
       z[j] = 0.0;
@@ -532,12 +498,7 @@ static void conj_grad(int colidx[],
     // Now, obtain the norm of r: First, sum squares of r elements locally...
     //---------------------------------------------------------------------
     //num_gangs = (lastcol - firstcol + 1)/128;
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang worker vector num_gangs((lastcol-firstcol+1+127)/128) \
-        num_workers(4) vector_length(32) reduction(+:rho)
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang worker vector reduction(+:rho)
-#endif
     for (j = 0; j < lastcol - firstcol + 1; j++) {
       rho = rho + r[j]*r[j];
     }
@@ -579,11 +540,7 @@ static void conj_grad(int colidx[],
       //num_gangs = (lastrow - firstrow + 1)/128;
       end = lastrow - firstrow + 1;
 
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs(end) num_workers(4) vector_length(32)
-#elif CRPL_COMP == 0
 #pragma acc kernels
-#endif
       {
 #pragma acc loop gang
         for (j = 0; j < end; j++) {
@@ -604,11 +561,7 @@ static void conj_grad(int colidx[],
       d = 0.0;
       end = lastcol - firstcol + 1;
 
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs((end+127)/128) num_workers(4) vector_length(32)
-#elif CRPL_COMP == 0
 #pragma acc kernels
-#endif
       {
 #pragma acc loop gang worker vector reduction(+:d)
         for (j = 0; j < end; j++) {
@@ -632,11 +585,7 @@ static void conj_grad(int colidx[],
       //---------------------------------------------------------------------
       rho = 0.0;
 
-#ifndef CRPL_COMP
-#pragma acc kernels loop gang((end+1023)/1024) vector(1024) independent
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang vector independent
-#endif
       for (j = 0; j < end; j++) {
         z[j] = z[j] + alpha*p[j];
         r[j] = r[j] - alpha*q[j];
@@ -646,11 +595,7 @@ static void conj_grad(int colidx[],
       // rho = r.r
       // Now, obtain the norm of r: First, sum squares of r elements locally...
       //---------------------------------------------------------------------
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs((end+127)/128) num_workers(4) vector_length(32)
-#elif CRPL_COMP == 0
 #pragma acc kernels
-#endif
       {
 #pragma acc loop gang worker vector reduction(+:rho)
         for (j = 0; j < end; j++)
@@ -667,11 +612,7 @@ static void conj_grad(int colidx[],
       //---------------------------------------------------------------------
       // p = r + beta*p
       //---------------------------------------------------------------------
-#ifndef CRPL_COMP
-#pragma acc kernels loop gang((end+127)/128) vector(128) independent
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang vector independent
-#endif
       for (j = 0; j < end; j++) {
         p[j] = r[j] + beta*p[j];
       }
@@ -686,12 +627,7 @@ static void conj_grad(int colidx[],
     end = lastrow - firstrow + 1;
     //num_gangs = end/128;
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(end) \
-        num_workers(4) vector_length(32)
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
     for (j = 0; j < end; j++) {
       tmp1=rowstr[j];
       tmp2=rowstr[j+1];
@@ -710,14 +646,7 @@ static void conj_grad(int colidx[],
     sum = 0.0;
     //num_gangs = (lastcol-firstcol+1)/128;
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang worker vector \
-        num_gangs((lastcol-firstcol+1+127)/128) \
-        num_workers(4) vector_length(32) \
-        reduction(+:sum)
-#elif CRPL_COMP == 0
 #pragma acc kernels loop gang worker vector reduction(+:sum)
-#endif
 
     for (j = 0; j < lastcol-firstcol+1; j++) {
       d   = x[j] - r[j];
