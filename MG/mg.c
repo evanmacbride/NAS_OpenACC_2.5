@@ -535,15 +535,10 @@ static void psinv(double * __restrict__ or, double * __restrict__ ou, int n1, in
         present(ou[0:n3*n2*n1]) \
         present(or[0:n3*n2*n1])
   {
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(n3-2) num_workers(16) vector_length(64)
-#elif CRPL_COMP == 0
-#pragma acc kernels loop gang independent
-#endif
+#pragma acc parallel loop independent
     for (i3 = 1; i3 < n3-1; i3++) {
-#pragma acc loop worker independent
+#pragma acc loop tile(64,16) independent
       for (i2 = 1; i2 < n2-1; i2++) {
-#pragma acc loop vector independent
         for (i1 = 0; i1 < n1; i1++) {
           /*
         r1[i1] = r[i3][i2-1][i1] + r[i3][i2+1][i1]
@@ -560,15 +555,10 @@ static void psinv(double * __restrict__ or, double * __restrict__ ou, int n1, in
       }
     }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(n3-2) num_workers(16) vector_length(64)
-#elif CRPL_COMP == 0
-#pragma acc kernels loop gang independent
-#endif
+#pragma acc parallel loop independent
     for (i3 = 1; i3 < n3-1; i3++) {
-#pragma acc loop worker independent
+#pragma acc loop tile(64,16) independent
       for (i2 = 1; i2 < n2-1; i2++) {
-#pragma acc loop vector independent
         for (i1 = 1; i1 < n1-1; i1++) {
           /*
         u[i3][i2][i1] = u[i3][i2][i1]
@@ -667,17 +657,19 @@ static void resid(double * ou, double * ov, double * or, int n1, int n2, int n3,
         present(ov[0:n3*n2*n1], or[0:n3*n2*n1])
   {
 
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs(n3-2) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel num_gangs(n3-2) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels
-#endif
+//#endif
     {
+//#pragma acc loop gang independent
 #pragma acc loop gang independent
       for (i3 = 1; i3 < n3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 1; i2 < n2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 0; i1 < n1; i1++) {
             /*
         u1[i1] = u[i3][i2-1][i1] + u[i3][i2+1][i1]
@@ -695,17 +687,19 @@ static void resid(double * ou, double * ov, double * or, int n1, int n2, int n3,
       }
     }
 
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs(n3-2) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel num_gangs(n3-2) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels
-#endif
+//#endif
     {
+//#pragma acc loop gang independent
 #pragma acc loop gang independent
       for (i3 = 1; i3 < n3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 1; i2 < n2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 1; i1 < n1-1; i1++) {
             /*
         r[i3][i2][i1] = v[i3][i2][i1]
@@ -948,15 +942,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
 
     if (n1 != 3 && n2 != 3 && n3 != 3) {
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = 0; i3 < mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 0; i2 < mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 0; i1 < mm1; i1++) {
             /*
           z1[i1] = z[i3][i2+1][i1] + z[i3][i2][i1];
@@ -975,15 +970,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = 0; i3 < mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 0; i2 < mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 0; i1 < mm1-1; i1++) {
             /*
           u[2*i3][2*i2][2*i1] = u[2*i3][2*i2][2*i1]
@@ -1000,15 +996,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = 0; i3 < mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 0; i2 < mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 0; i1 < mm1-1; i1++) {
             /*
           u[2*i3][2*i2+1][2*i1] = u[2*i3][2*i2+1][2*i1]
@@ -1025,15 +1022,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = 0; i3 < mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 0; i2 < mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 0; i1 < mm1-1; i1++) {
             /*
           u[2*i3+1][2*i2][2*i1] = u[2*i3+1][2*i2][2*i1]
@@ -1050,15 +1048,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = 0; i3 < mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 0; i2 < mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 0; i1 < mm1-1; i1++) {
             /*
           u[2*i3+1][2*i2+1][2*i1] = u[2*i3+1][2*i2+1][2*i1]
@@ -1099,15 +1098,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         t3 = 0;
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-d3) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-d3) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = d3; i3 <= mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = d2; i2 <= mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = d1; i1 <= mm1-1; i1++) {
             /*
           u[2*i3-d3-1][2*i2-d2-1][2*i1-d1-1] = 
@@ -1121,15 +1121,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-d3) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-d3) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = d3; i3 <= mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = d2; i2 <= mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 1; i1 <= mm1-1; i1++) {
             /*
           u[2*i3-d3-1][2*i2-d2-1][2*i1-t1-1] = 
@@ -1144,15 +1145,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-d3) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-d3) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = d3; i3 <= mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 1; i2 <= mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = d1; i1 <= mm1-1; i1++) {
             /*
           u[2*i3-d3-1][2*i2-t2-1][2*i1-d1-1] = 
@@ -1167,15 +1169,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-d3) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-d3) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = d3; i3 <= mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 1; i2 <= mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 1; i1 <= mm1-1; i1++) {
             /*
           u[2*i3-d3-1][2*i2-t2-1][2*i1-t1-1] = 
@@ -1193,15 +1196,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = 1; i3 <= mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = d2; i2 <= mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = d1; i1 <= mm1-1; i1++) {
             /*
           u[2*i3-t3-1][2*i2-d2-1][2*i1-d1-1] = 
@@ -1216,15 +1220,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = 1; i3 <= mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = d2; i2 <= mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 1; i1 <= mm1-1; i1++) {
             /*
           u[2*i3-t3-1][2*i2-d2-1][2*i1-t1-1] = 
@@ -1242,15 +1247,15 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = 1; i3 <= mm3-1; i3++) {
-#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 1; i2 <= mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = d1; i1 <= mm1-1; i1++) {
             /*
           u[2*i3-t3-1][2*i2-t2-1][2*i1-d1-1] = 
@@ -1268,15 +1273,16 @@ static void interp(double *oz, int mm1, int mm2, int mm3,
         }
       }
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang num_gangs(mm3-1) num_workers(8) vector_length(128)
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang independent
-#endif
+//#endif
       for (i3 = 1; i3 <= mm3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
         for (i2 = 1; i2 <= mm2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
           for (i1 = 1; i1 <= mm1-1; i1++) {
             /*
           u[2*i3-t3-1][2*i2-t2-1][2*i1-t1-1] = 
@@ -1358,16 +1364,17 @@ static void norm2u3(double *or, int n1, int n2, int n3,
 #pragma acc data pcopyin(or[0:n3*n2*n1])
   {
 
-#ifndef CRPL_COMP
-#pragma acc parallel loop gang reduction(+:s) reduction(max:temp) \
+//#ifndef CRPL_COMP
+//#pragma acc parallel loop gang reduction(+:s) reduction(max:temp) \
         num_gangs(n3-2) num_workers(8) vector_length(128)
-#elif CRPL_COMP == 0
+//#elif CRPL_COMP == 0
 #pragma acc kernels loop gang reduction(+:s) reduction(max:temp) independent
-#endif
+//#endif
     for (i3 = 1; i3 < n3-1; i3++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
       for (i2 = 1; i2 < n2-1; i2++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
         for (i1 = 1; i1 < n1-1; i1++) {
           //s = s + pow(r[i3][i2][i1], 2.0);
           //a = fabs(r[i3][i2][i1]);
