@@ -1,7 +1,8 @@
 SHELL=/bin/sh
 BENCHMARK=sp
 BENCHMARKU=SP
-DEFINES=-DCRPL_COMP=0
+#DEFINES=-DCRPL_COMP=0
+DEFINES=""
 PXM=acc
 
 include ../config/make.def

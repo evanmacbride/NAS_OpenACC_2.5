@@ -388,8 +388,8 @@ int main()
           in_t1 = r23 * A;
           in_a1 = (int)in_t1;
           in_a2 = A - t23 * in_a1;
-#pragma acc loop independent
-          for(i=0; i<2*NK; i++)
+          
+	  for(i=0; i<2*NK; i++)
           {
             in_t1 = r23 * t1;
             in_x1 = (int)in_t1;
@@ -412,8 +412,8 @@ int main()
 
           tmp_sx = 0.0;
           tmp_sy = 0.0;
-#pragma acc loop independent
-          for (i = 0; i < NK; i++) {
+          
+	  for (i = 0; i < NK; i++) {
             x1 = 2.0 * xx[2*i*blksize + (k-1)] - 1.0;
             x2 = 2.0 * xx[(2*i+1)*blksize + (k-1)] - 1.0;
             t1 = x1 * x1 + x2 * x2;

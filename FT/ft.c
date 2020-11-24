@@ -277,18 +277,12 @@ static void init_ui(int d1, int d2, int d3)
 {
   int i, j, k;
 
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs(d3) num_workers(8) vector_length(128) \
-        present(u0_real,u0_imag,u1_real,u1_imag,twiddle)
-#elif CRPL_COMP == 0
 #pragma acc kernels present(u0_real,u0_imag,u1_real,u1_imag,twiddle)
-#endif
   {
 #pragma acc loop gang independent
     for (k = 0; k < d3; k++) {
-#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
       for (j = 0; j < d2; j++) {
-#pragma acc loop vector independent
         for (i = 0; i < d1; i++) {
           u0_real[k*d2*(d1+1) + j*(d1+1) + i] = 0.0;
           u0_imag[k*d2*(d1+1) + j*(d1+1) + i] = 0.0;
@@ -309,18 +303,12 @@ static void evolve(int d1, int d2, int d3)
 {
   int i, j, k;
 
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs(d3) num_workers(8) vector_length(128) \
-        present(u0_real,u0_imag,u1_real,u1_imag,twiddle)
-#elif CRPL_COMP == 0
 #pragma acc kernels present(u0_real,u0_imag,u1_real,u1_imag,twiddle)
-#endif
   {
 #pragma acc loop gang independent
     for (k = 0; k < d3; k++) {
-#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
       for (j = 0; j < d2; j++) {
-#pragma acc loop vector independent
         for (i = 0; i < d1; i++) {
           u0_real[k*d2*(d1+1) + j*(d1+1) + i] = u0_real[k*d2*(d1+1) + j*(d1+1) + i]
                                                         *twiddle[k*d2*(d1+1) + j*(d1+1) + i];
@@ -503,17 +491,18 @@ static void compute_indexmap(int d1, int d2, int d3)
 
   ap = -4.0 * ALPHA * PI * PI;
 
-#ifndef CRPL_COMP
-#pragma acc parallel num_gangs(d3) num_workers(8) vector_length(128) present(twiddle)
-#elif CRPL_COMP == 0
+//#ifndef CRPL_COMP
+//#pragma acc parallel num_gangs(d3) num_workers(8) vector_length(128) present(twiddle)
+//#elif CRPL_COMP == 0
 #pragma acc kernels present(twiddle)
-#endif
+//#endif
   {
 #pragma acc loop gang independent
     for (k = 0; k < d3; k++) {
-#pragma acc loop worker independent
+//#pragma acc loop worker independent
+#pragma acc loop tile(64,8) independent
       for (j = 0; j < d2; j++) {
-#pragma acc loop vector independent
+//#pragma acc loop vector independent
         for (i = 0; i < d1; i++) {
           kk = ((k + NZ/2) % NZ) - NZ/2;
           kk2 = kk*kk;
