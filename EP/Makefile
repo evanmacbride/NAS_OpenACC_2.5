@@ -4,7 +4,6 @@ BENCHMARKU=EP
 #DEFINES=-DCRPL_COMP=""
 DEFINES=""
 PXM=acc
-#PXM=""
 
 include ../config/make.def
 

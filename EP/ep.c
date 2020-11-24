@@ -257,12 +257,13 @@ int main()
   //  Also, call all mathematical functions that are used. Make
   //  sure these initializations cannot be eliminated as dead code.
   //--------------------------------------------------------------------
-#pragma acc data create(xx[0:blksize*2*NK],qq[0:blksize*NQ]) copyout(q[0:NQ])
+//#pragma acc data create(xx[0:blksize*2*NK],qq[0:blksize*NQ]) copyout(q[0:NQ])
   {
     vranlc(0, &dum[0], dum[1], &dum[2]);
     dum[0] = randlc_ep(&dum[1], dum[2]);
 
-#pragma acc kernels present(q[0:NQ])
+//#pragma acc kernels present(q[0:NQ])
+#pragma acc kernels copy(q[0:NQ])
     {
 #pragma acc loop gang vector independent
       for (i = 0; i < NQ; i++) {
@@ -305,7 +306,8 @@ int main()
         blksize = np - (blk*blksize);
       }
 
-#pragma acc kernels present(qq[0:blksize*NQ])
+//#pragma acc kernels present(qq[0:blksize*NQ])
+#pragma acc kernels copy(qq[0:blksize*NQ])
       {
 #pragma acc loop collapse(2) independent
         for(k=0; k<blksize; k++)
@@ -316,7 +318,8 @@ int main()
       }
 
       /*
-#pragma acc parallel present(xx[0:blksize*2*NK])
+//#pragma acc parallel present(xx[0:blksize*2*NK])
+#pragma acc parallel copy(xx[0:blksize*2*NK])
 {
  #pragma acc loop gang
  for(k=0; k<blksize; k++)
@@ -333,7 +336,8 @@ int main()
       //  have more numbers to generate than others
       //--------------------------------------------------------------------
 
-#pragma acc kernels present(xx[0:blksize*2*NK],qq[0:blksize*NQ])
+//#pragma acc kernels present(xx[0:blksize*2*NK],qq[0:blksize*NQ])
+#pragma acc kernels copy(xx[0:blksize*2*NK],qq[0:blksize*NQ])
       {
 #pragma acc loop gang worker vector reduction(+:sx,sy) independent
         for (k = 1; k <= blksize; k++) {
@@ -435,7 +439,8 @@ int main()
       }/*end acc parallel*/
 
       //  printf("sx=%f,sy=%f\n", sx, sy);
-#pragma acc kernels present(q[0:NQ],qq[0:blksize*NQ])
+//#pragma acc kernels present(q[0:NQ],qq[0:blksize*NQ])
+#pragma acc kernels copy(q[0:NQ],qq[0:blksize*NQ])
       {
 #pragma acc loop gang reduction(+:gc) independent
         for(i=0; i<NQ; i++)

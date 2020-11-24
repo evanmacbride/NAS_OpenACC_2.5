@@ -41,6 +41,7 @@ endif
 ifeq ($(CC), pgcc)
 
     ifndef TA
+        #TA=tesla,cc70,managed 
         TA=tesla,cc70 
     endif
     

@@ -214,8 +214,8 @@ int main(int argc, char *argv[])
     timer_clear(i);
   }
   setup();
-#pragma acc data create(u0_real,u0_imag,u1_real,u1_imag,u_real,u_imag,\
-        twiddle,gty1_real,gty1_imag, gty2_real, gty2_imag)
+//#pragma acc data create(u0_real,u0_imag,u1_real,u1_imag,u_real,u_imag,\
+//        twiddle,gty1_real,gty1_imag, gty2_real, gty2_imag)
   {
     init_ui(dims[0], dims[1], dims[2]);
     compute_indexmap(dims[0], dims[1], dims[2]);
@@ -277,7 +277,8 @@ static void init_ui(int d1, int d2, int d3)
 {
   int i, j, k;
 
-#pragma acc kernels present(u0_real,u0_imag,u1_real,u1_imag,twiddle)
+//#pragma acc kernels present(u0_real,u0_imag,u1_real,u1_imag,twiddle)
+#pragma acc kernels copy(u0_real,u0_imag,u1_real,u1_imag,twiddle)
   {
 #pragma acc loop gang independent
     for (k = 0; k < d3; k++) {
@@ -303,7 +304,8 @@ static void evolve(int d1, int d2, int d3)
 {
   int i, j, k;
 
-#pragma acc kernels present(u0_real,u0_imag,u1_real,u1_imag,twiddle)
+//#pragma acc kernels present(u0_real,u0_imag,u1_real,u1_imag,twiddle)
+#pragma acc kernels copy(u0_real,u0_imag,u1_real,u1_imag,twiddle)
   {
 #pragma acc loop gang independent
     for (k = 0; k < d3; k++) {
@@ -392,7 +394,7 @@ static void compute_initial_conditions(int d1, int d2, int d3)
       }
     }
   }
-#pragma acc update device(u1_real,u1_imag)
+//#pragma acc update device(u1_real,u1_imag)
 }
 
 
@@ -491,11 +493,8 @@ static void compute_indexmap(int d1, int d2, int d3)
 
   ap = -4.0 * ALPHA * PI * PI;
 
-//#ifndef CRPL_COMP
-//#pragma acc parallel num_gangs(d3) num_workers(8) vector_length(128) present(twiddle)
-//#elif CRPL_COMP == 0
-#pragma acc kernels present(twiddle)
-//#endif
+//#pragma acc kernels present(twiddle)
+#pragma acc kernels copy(twiddle)
   {
 #pragma acc loop gang independent
     for (k = 0; k < d3; k++) {
@@ -558,9 +557,11 @@ static void fft_init(int n)
   //u[0] = dcmplx(m, 0.0);
 
 #ifndef CRPL_COMP
-#pragma acc parallel num_gangs(1) num_workers(1) vector_length(1) present(u_real,u_imag)
+//#pragma acc parallel num_gangs(1) num_workers(1) vector_length(1) present(u_real,u_imag)
+#pragma acc parallel num_gangs(1) num_workers(1) vector_length(1) copy(u_real,u_imag)
 #elif CRPL_COMP == 0
-#pragma acc kernels present(u_real,u_imag)
+//#pragma acc kernels present(u_real,u_imag)
+#pragma acc kernels copy(u_real,u_imag)
 #endif
   {
     u_real[0] = m;
@@ -573,9 +574,11 @@ static void fft_init(int n)
     t = PI / ln;
 
 #ifndef CRPL_COMP
-#pragma acc parallel num_gangs((ln+127)/128) vector_length(128) present(u_real,u_imag)
+//#pragma acc parallel num_gangs((ln+127)/128) vector_length(128) present(u_real,u_imag)
+#pragma acc parallel num_gangs((ln+127)/128) vector_length(128) copy(u_real,u_imag)
 #elif CRPL_COMP == 0
-#pragma acc kernels present(u_real,u_imag)
+//#pragma acc kernels present(u_real,u_imag)
+#pragma acc kernels copy(u_real,u_imag)
 #endif
     {
 #pragma acc loop gang vector independent
@@ -627,15 +630,19 @@ static void cffts1_pos(int is, int d1, int d2, int d3)
   logd1 = ilog2(d1);
 
 #ifndef CRPL_COMP
+//#pragma acc parallel num_gangs(d3) vector_length(128) \
+//        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u1_real,u1_imag,u_real,u_imag)
 #pragma acc parallel num_gangs(d3) vector_length(128) \
-        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
-                u1_real,u1_imag,u_real,u_imag)
+	copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+        u1_real,u1_imag,u_real,u_imag)
 #elif CRPL_COMP == 0
-#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u1_real,u1_imag,u_real,u_imag)
+#pragma acc kernels copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u1_real,u1_imag,u_real,u_imag)
 #endif
   {
-#pragma acc loop gang independent
     for (k = 0; k < d3; k++) {
 #pragma acc loop vector independent
       for (j = 0; j < d2; j++) {
@@ -741,11 +748,16 @@ static void cffts1_neg(int is, int d1, int d2, int d3)
   logd1 = ilog2(d1);
 
 #ifndef CRPL_COMP
+//#pragma acc parallel num_gangs(d3) vector_length(128) \
+//        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u1_real,u1_imag,u_real,u_imag)
 #pragma acc parallel num_gangs(d3) vector_length(128) \
-        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+        copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u1_real,u1_imag,u_real,u_imag)
 #elif CRPL_COMP == 0
-#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u1_real,u1_imag,u_real,u_imag)
+#pragma acc kernels copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u1_real,u1_imag,u_real,u_imag)
 #endif
   {
@@ -856,11 +868,16 @@ static void cffts2_pos(int is, int d1, int d2, int d3)
   logd2 = ilog2(d2);
 
 #ifndef CRPL_COMP
+//#pragma acc parallel num_gangs(d3) vector_length(128) \
+//        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u1_real,u1_imag,u_real,u_imag)
 #pragma acc parallel num_gangs(d3) vector_length(128) \
-        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+        copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u1_real,u1_imag,u_real,u_imag)
 #elif CRPL_COMP == 0
-#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u1_real,u1_imag,u_real,u_imag)
+#pragma acc kernels copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u1_real,u1_imag,u_real,u_imag)
 #endif
   {
@@ -971,11 +988,16 @@ static void cffts2_neg(int is, int d1, int d2, int d3)
   logd2 = ilog2(d2);
 
 #ifndef CRPL_COMP
+//#pragma acc parallel num_gangs(d3) vector_length(128) \
+//        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u1_real,u1_imag,u_real,u_imag)
 #pragma acc parallel num_gangs(d3) vector_length(128) \
-        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+        copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u1_real,u1_imag,u_real,u_imag)
 #elif CRPL_COMP == 0
-#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u1_real,u1_imag,u_real,u_imag)
+#pragma acc kernels copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u1_real,u1_imag,u_real,u_imag)
 #endif
   {
@@ -1086,11 +1108,16 @@ static void cffts3_pos(int is, int d1, int d2, int d3)
   logd3 = ilog2(d3);
 
 #ifndef CRPL_COMP
+//#pragma acc parallel num_gangs(d2) vector_length(128) \
+//        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u0_real,u0_imag,u1_real,u1_imag,u_real,u_imag)
 #pragma acc parallel num_gangs(d2) vector_length(128) \
-        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+        copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u0_real,u0_imag,u1_real,u1_imag,u_real,u_imag)
 #elif CRPL_COMP == 0
-#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u0_real,u0_imag,u1_real,u1_imag,u_real,u_imag)
+#pragma acc kernels copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u0_real,u0_imag,u1_real,u1_imag,u_real,u_imag)
 #endif
   {
@@ -1203,11 +1230,16 @@ static void cffts3_neg(int is, int d1, int d2, int d3)
   logd3 = ilog2(d3);
 
 #ifndef CRPL_COMP
+//#pragma acc parallel num_gangs(d2) vector_length(128) \
+//        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u1_real,u1_imag,u_real,u_imag)
 #pragma acc parallel num_gangs(d2) vector_length(128) \
-        present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+        copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u1_real,u1_imag,u_real,u_imag)
 #elif CRPL_COMP == 0
-#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//#pragma acc kernels present(gty1_real,gty1_imag,gty2_real,gty2_imag,\
+//                u1_real,u1_imag,u_real,u_imag)
+#pragma acc kernels copy(gty1_real,gty1_imag,gty2_real,gty2_imag,\
                 u1_real,u1_imag,u_real,u_imag)
 #endif
   {
@@ -1331,10 +1363,13 @@ static void checksum(int i, int d1, int d2, int d3)
 
   //#pragma acc update host(u1_real,u1_imag)
 #ifndef CRPL_COMP
+//#pragma acc parallel num_gangs(1) num_workers(1) \
+//        vector_length(1024) present(u1_real,u1_imag)
 #pragma acc parallel num_gangs(1) num_workers(1) \
-        vector_length(1024) present(u1_real,u1_imag)
+        vector_length(1024) copy(u1_real,u1_imag)
 #elif CRPL_COMP == 0
-#pragma acc kernels present(u1_real,u1_imag)
+//#pragma acc kernels present(u1_real,u1_imag)
+#pragma acc kernels copy(u1_real,u1_imag)
 #endif
   {
 #pragma acc loop gang worker vector reduction(+:temp1,temp2)
